@@ -12,7 +12,7 @@ node{
 sh "${mavenHome}/bin/mvn clean package"
 }
   
-  /*
+  
 stage('Excute SonarQube Report'){
 
 sh "${mavenHome}/bin/mvn sonar:sonar"
@@ -41,6 +41,6 @@ Mithun Technologies,
 
 
 }
-*/
+
 
 }
