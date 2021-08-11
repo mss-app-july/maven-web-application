@@ -1,0 +1,90 @@
+pipeline{
+  
+  agent any
+  tools{ 
+  maven  'maven3.8.1'
+}
+
+triggers{
+//pollscm
+pollSCM('* * * * *')
+//Build periodically
+//cron('* * * * *')
+//github-webhook
+//githubPush()
+}
+options{
+buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '3', daysToKeepStr: '3', numToKeepStr: ''))
+
+timestamps()
+}
+
+   stages{
+   
+       stage('Check  Out code'){
+           steps{
+          git branch: 'development', credentialsId: 'f52f105d-2fd3-455f-bc90-1da09f9a53de', url: 'https://github.com/mss-app-july/maven-web-application.git'
+            }
+        }
+        stage('Build'){
+           steps{
+         sh "mvn clean package"
+     }
+    }
+       stage('Excute SonarQube Report'){
+
+    steps{
+       
+    sh "mvn sonar:sonar"
+  }
+}
+
+ stage('Deploy Artifact into Nexus'){
+
+    steps{
+       
+    sh "mvn deploy"
+  }
+}
+ stage('Deploy Application Into Tomcat'){
+
+    steps{
+       
+    sshagent(['ab9211a3-c864-4eef-8717-d6217601c933']) {
+ 
+   sh "scp -o StrictHostKeyChecking=no target/maven-web-application.war    ec2-user@3.139.74.165:/opt/apache-tomcat-9.0.50/webapps/" 
+}
+  }
+}
+}
+
+post{
+    success{
+emailext body: '''Build Over..Declarative Way - success
+
+reguards,
+Mithun Technologies,
+9581041335.''', subject: 'Build Over..Declarative Way - success', to: 'mithunreddy177@gmail.com,baluv03@gmail.com'
+
+     
+}
+
+failure{
+emailext body: '''Build Over..Declarative Way - failed
+
+reguards,
+Mithun Technologies,
+9581041335.''', subject: 'Build Over..Declarative Way - failed', to: 'mithunreddy177@gmail.com,baluv03@gmail.com'
+
+}
+always{
+emailext body: '''Build Over..Declarative Way - failed
+
+reguards,
+Mithun Technologies,
+9581041335.''', subject: 'Build Over..Declarative Way - failed', to: 'mithunreddy177@gmail.com,baluv03@gmail.com'
+
+}
+   
+}
+}
